@@ -1,0 +1,12 @@
+{
+  "dependencies": {
+    "ejs": "^2.6.1",
+    "express": "^4.16.4",
+    "moment": "^2.23.0",
+    "opn": "^5.4.0",
+    "sqlite3": "^4.0.4",
+    "uuid": "^3.3.2",
+    "validator": "^10.9.0",
+    "xss-filters": "^1.2.7"
+  }
+}

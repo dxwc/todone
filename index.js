@@ -146,3 +146,57 @@ function add_task(task_description, parent_id)
         });
     });
 }
+
+function update_task(id, description, progress, parent)
+{
+    return new Promise((resolve, reject) =>
+    {
+        let is_valid_parent      = false;
+        let is_valid_description = false;
+        let is_valid_progress    = false;
+
+        if(!is_str(id) || !val.isUUID(id, 4))
+            return reject(new Error('id is a required field'));
+
+        if(is_str(parent) && val.isUUID(parent, 4))
+            is_valid_parent = true;
+        if(is_str(description))
+        {
+            is_valid_description = true;
+            description = val.escape(description);
+        }
+
+        if(typeof(progress) === 'number' && progress >= 0 && progress <= 100)
+            is_valid_progress = true;
+
+        db_run
+        (
+            `
+            UPDATE task
+            SET
+                ${
+                    is_valid_parent ?
+                    `parent = '${parent}' ${is_valid_description ? `,` : ''}`
+                    : ''
+                }${
+                    is_valid_description ?
+                    `description = '${description}' ${is_valid_progress  ? `,` : ''}`
+                    : ''
+                }${
+                    is_valid_progress ?
+                    `progress = ${progress}`
+                    : ''
+                }
+            WHERE id = '${id}';
+            `
+        )
+        .then(() =>
+        {
+            return resolve(id);
+        })
+        .catch((err) =>
+        {
+            return reject(err);
+        });
+    });
+}

@@ -117,6 +117,8 @@ function add_task(task_description, parent_id)
         if(is_str(parent_id) && val.isUUID(parent_id, 4))
             valid_parent = true;
 
+        let id = uuid4();
+
         db_run
         (
             `
@@ -128,7 +130,7 @@ function add_task(task_description, parent_id)
             )
             VALUES
             (
-                '${uuid4()}',
+                '${id}',
                 ${valid_parent ? `'${parent_id}',`: ''}
                 '${val.escape(task_description)}'
             );
@@ -136,7 +138,7 @@ function add_task(task_description, parent_id)
         )
         .then(() =>
         {
-            resolve();
+            resolve(id);
         })
         .catch((err) =>
         {

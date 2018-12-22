@@ -79,6 +79,8 @@ function init_db()
                     id          TEXT PRIMARY KEY,
                     parent      TEXT,
                     description TEXT NOT NULL,
+                    progress    INTEGER DEFAULT 0 CHECK
+                                (progress >= 0 AND progress <= 100),
                     created     INTEGER NOT NULL DEFAULT (STRFTIME('%s', 'now')),
                     updated     INTEGER NOT NULL DEFAULT (STRFTIME('%s', 'now'))
                 );
@@ -98,30 +100,47 @@ function init_db()
     });
 }
 
+function is_str(input)
+{
+    return input && input.constructor === String;
+}
+
 function add_task(task_description, parent_id)
 {
-    if(typeof(task_description) !== 'string')
-        return Promise.reject('Invalid use of function');
+    return new Promise((resolve, reject) =>
+    {
+        if(!is_str(task_description))
+            reject(new Error('Invalid use of functions'));
 
-    let valid_parent = false;
-    if(typeof(parent_id) === 'string' && val.isUUID(parent_id, 4))
-        valid_parent = true;
+        let valid_parent = false;
 
-    return db_run
-    (
-        `
-        INSERT INTO task
+        if(is_str(parent_id) && val.isUUID(parent_id, 4))
+            valid_parent = true;
+
+        db_run
         (
-            id,
-            ${valid_parent ? `parent,` : ''}
-            description
+            `
+            INSERT INTO task
+            (
+                id,
+                ${valid_parent ? `parent,` : ''}
+                description
+            )
+            VALUES
+            (
+                '${uuid4()}',
+                ${valid_parent ? `'${parent_id}',`: ''}
+                '${val.escape(task_description)}'
+            );
+            `
         )
-        VALUES
-        (
-            '${uuid4()}',
-            ${valid_parent ? `'${parent_id}',`: ''}
-            '${val.escape(task_description)}'
-        );
-        `
-    );
+        .then(() =>
+        {
+            resolve();
+        })
+        .catch((err) =>
+        {
+            reject(err);
+        });
+    });
 }
